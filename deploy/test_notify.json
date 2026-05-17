@@ -1,0 +1,1 @@
+{"title":"Quillgo 服务告警","content":"Quillgo 服务异常，连续3次健康检查失败，请立即处理！","level":"critical","tags":{"source":"watchdog"}}

@@ -1,0 +1,76 @@
+server:
+  listen: ":8080"
+  metrics_listen: ":9090"
+  admin_token: "${ADMIN_TOKEN}"
+
+database:
+  path: "data/notifier.db"
+
+default_channels:
+  - "napcat-qq"
+
+rate_limit:
+  per_source_level:
+    window: "5m"
+    max: 10
+  per_source:
+    window: "5m"
+    max: 50
+  global:
+    window: "1m"
+    max: 100
+
+retry:
+  max_attempts: 3
+  base_delay: "2s"
+  max_delay: "30s"
+
+channels:
+  - name: "napcat-qq"
+    type: "napcat"
+    config:
+      api_url: "http://127.0.0.1:3000"
+      access_token: "${NAPCAT_TOKEN}"
+      user_id: "${YOUR_QQ}"
+      message_type: "private"
+    filter:
+      levels: ["critical", "error", "warning"]
+    enabled: true
+
+  - name: "qmsg-qq"
+    type: "qmsg"
+    config:
+      key: "${QMSG_KEY}"
+      qq: "${YOUR_QQ}"
+      group: "false"
+    filter:
+      levels: ["critical", "error", "warning"]
+    enabled: false
+
+  - name: "wechat-main"
+    type: "wechat"
+    config:
+      webhook_url: "${WECHAT_WEBHOOK_URL}"
+    filter:
+      levels: ["critical", "error", "warning"]
+    enabled: true
+
+  - name: "email-admin"
+    type: "email"
+    config:
+      smtp_host: "${SMTP_HOST}"
+      smtp_port: "587"
+      username: "${SMTP_USER}"
+      password: "${SMTP_PASSWORD}"
+      from: "notifier@yourdomain.com"
+      to: "admin@yourdomain.com"
+    filter:
+      levels: ["critical"]
+    enabled: true
+
+silence:
+  windows:
+    - start: "02:00"
+      end: "08:00"
+      timezone: "Asia/Shanghai"
+      levels: ["info", "warning"]

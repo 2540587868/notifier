@@ -1,0 +1,40 @@
+version: "3"
+services:
+  napcat:
+    image: mlikiowa/napcat-docker:latest
+    container_name: napcat
+    restart: always
+    ports:
+      - "127.0.0.1:3000:3000"
+      - "0.0.0.0:6099:6099"
+    environment:
+      - NAPCAT_UID=0
+      - NAPCAT_GID=0
+    volumes:
+      - ./napcat/config:/app/napcat/config
+      - ./napcat/ntqq:/app/.config/QQ
+    networks:
+      - notifier-net
+
+  notifier:
+    build:
+      context: /opt/notifier/src
+      dockerfile: Dockerfile
+    container_name: notifier
+    restart: always
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./notifier/config.yaml:/etc/notifier/config.yaml:ro
+      - notifier-data:/data
+    depends_on:
+      - napcat
+    networks:
+      - notifier-net
+
+networks:
+  notifier-net:
+    driver: bridge
+
+volumes:
+  notifier-data:

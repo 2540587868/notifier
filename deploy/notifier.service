@@ -1,0 +1,15 @@
+[Unit]
+Description=Notifier Push Service
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/notifier/notifier
+ExecStart=/opt/notifier/notifier/notifier -config /opt/notifier/notifier/config.yaml
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
