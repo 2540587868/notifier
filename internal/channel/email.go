@@ -91,45 +91,45 @@ func (e *EmailChannel) Send(ctx context.Context, msg *message.RenderedMessage) e
 
 		c, err := smtp.NewClient(conn, e.smtpHost)
 		if err != nil {
-			conn.Close()
+			_ = conn.Close()
 			return fmt.Errorf("smtp client: %w", err)
 		}
 
 		if err := c.Auth(auth); err != nil {
-			c.Close()
+			_ = c.Close()
 			return fmt.Errorf("smtp auth: %w", err)
 		}
 
 		if err := c.Mail(e.from); err != nil {
-			c.Close()
+			_ = c.Close()
 			return fmt.Errorf("smtp mail: %w", err)
 		}
 
 		for _, to := range e.to {
 			if err := c.Rcpt(to); err != nil {
-				c.Close()
+				_ = c.Close()
 				return fmt.Errorf("smtp rcpt: %w", err)
 			}
 		}
 
 		w, err := c.Data()
 		if err != nil {
-			c.Close()
+			_ = c.Close()
 			return fmt.Errorf("smtp data: %w", err)
 		}
 
 		if _, err := w.Write(mail.Bytes()); err != nil {
-			w.Close()
-			c.Close()
+			_ = w.Close()
+			_ = c.Close()
 			return fmt.Errorf("smtp write: %w", err)
 		}
 
 		if err := w.Close(); err != nil {
-			c.Close()
+			_ = c.Close()
 			return fmt.Errorf("smtp close: %w", err)
 		}
 
-		c.Quit()
+		_ = c.Quit()
 		return nil
 	})
 }
