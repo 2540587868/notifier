@@ -67,7 +67,7 @@ func (w *WeChatChannel) Send(ctx context.Context, msg *message.RenderedMessage) 
 		if err != nil {
 			return err
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 
 		if resp.StatusCode != http.StatusOK {
 			respBody, _ := io.ReadAll(resp.Body)

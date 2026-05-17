@@ -73,7 +73,7 @@ func (e *EmailChannel) Send(ctx context.Context, msg *message.RenderedMessage) e
 
 	var mail bytes.Buffer
 	for k, v := range headers {
-		mail.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
+		fmt.Fprintf(&mail, "%s: %s\r\n", k, v)
 	}
 	mail.WriteString("\r\n")
 	mail.WriteString(payload)
@@ -95,18 +95,21 @@ func (e *EmailChannel) Send(ctx context.Context, msg *message.RenderedMessage) e
 			return fmt.Errorf("smtp client: %w", err)
 		}
 
-		if err := c.Auth(auth); err != nil {
+		err = c.Auth(auth)
+		if err != nil {
 			_ = c.Close()
 			return fmt.Errorf("smtp auth: %w", err)
 		}
 
-		if err := c.Mail(e.from); err != nil {
+		err = c.Mail(e.from)
+		if err != nil {
 			_ = c.Close()
 			return fmt.Errorf("smtp mail: %w", err)
 		}
 
 		for _, to := range e.to {
-			if err := c.Rcpt(to); err != nil {
+			err = c.Rcpt(to)
+			if err != nil {
 				_ = c.Close()
 				return fmt.Errorf("smtp rcpt: %w", err)
 			}

@@ -19,7 +19,7 @@ concurrency:
 
 env:
   GOPROXY: 'https://goproxy.cn,direct'
-  GO_VERSION: '1.26'
+  GO_VERSION: '1.25'
   BINARY_NAME: notifier
   DEPLOY_PATH: /opt/notifier/notifier
   HEALTH_URL: http://127.0.0.1:8081/health

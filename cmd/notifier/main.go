@@ -48,8 +48,8 @@ func main() {
 
 	cfg := cfgMgr.Get()
 
-	if err := os.MkdirAll("data", 0755); err != nil {
-		slog.Error("failed to create data directory", "error", err)
+	if mkdirErr := os.MkdirAll("data", 0755); mkdirErr != nil {
+		slog.Error("failed to create data directory", "error", mkdirErr)
 		os.Exit(1)
 	}
 
@@ -95,14 +95,14 @@ func main() {
 		}
 
 		recordID := task.Message.Original.ID + ":" + task.ChannelName
-		if err := ch.Send(ctx, task.Message); err != nil {
+		if sendErr := ch.Send(ctx, task.Message); sendErr != nil {
 			slog.Error("failed to send notification",
 				"channel", task.ChannelName,
 				"attempt", task.Attempt,
-				"error", err,
+				"error", sendErr,
 			)
-			if err := st.UpdateNotificationStatus(recordID, "failed", err.Error()); err != nil {
-				slog.Error("failed to update notification status", "error", err)
+			if updateErr := st.UpdateNotificationStatus(recordID, "failed", sendErr.Error()); updateErr != nil {
+				slog.Error("failed to update notification status", "error", updateErr)
 			}
 		} else {
 			slog.Info("notification sent",
@@ -110,8 +110,8 @@ func main() {
 				"level", string(task.Message.Original.Level),
 				"title", task.Message.Original.Title,
 			)
-			if err := st.UpdateNotificationStatus(recordID, "sent", ""); err != nil {
-				slog.Error("failed to update notification status", "error", err)
+			if updateErr := st.UpdateNotificationStatus(recordID, "sent", ""); updateErr != nil {
+				slog.Error("failed to update notification status", "error", updateErr)
 			}
 		}
 	})

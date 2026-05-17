@@ -38,7 +38,9 @@ func newWebhookFromConfig(cfg map[string]string) (Channel, error) {
 	}
 	headers := make(map[string]string)
 	if h := cfg["headers"]; h != "" {
-		json.Unmarshal([]byte(h), &headers)
+		if err := json.Unmarshal([]byte(h), &headers); err != nil {
+			return nil, fmt.Errorf("parse headers: %w", err)
+		}
 	}
 	return NewWebhookChannel(url, headers), nil
 }
@@ -83,7 +85,7 @@ func (w *WebhookChannel) Send(ctx context.Context, msg *message.RenderedMessage)
 		if err != nil {
 			return err
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 
 		if resp.StatusCode >= 400 {
 			respBody, _ := io.ReadAll(resp.Body)

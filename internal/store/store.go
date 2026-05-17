@@ -112,7 +112,7 @@ func (s *Store) ListChannels() ([]*ChannelRecord, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var channels []*ChannelRecord
 	for rows.Next() {
@@ -221,7 +221,7 @@ func (s *Store) ListNotifications(page, pageSize int, level, status string) ([]*
 	if err != nil {
 		return nil, 0, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var notifications []*NotificationRecord
 	for rows.Next() {
@@ -268,7 +268,7 @@ func (s *Store) ListTokens() ([]*TokenRecord, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var tokens []*TokenRecord
 	for rows.Next() {
@@ -288,17 +288,25 @@ func (s *Store) DeleteToken(id int64) error {
 
 func (s *Store) GetStats() (map[string]any, error) {
 	var total, sent, failed, rateLimited int64
-	s.db.QueryRow(`SELECT COUNT(*) FROM notifications`).Scan(&total)
-	s.db.QueryRow(`SELECT COUNT(*) FROM notifications WHERE status = 'sent'`).Scan(&sent)
-	s.db.QueryRow(`SELECT COUNT(*) FROM notifications WHERE status = 'failed'`).Scan(&failed)
-	s.db.QueryRow(`SELECT COUNT(*) FROM notifications WHERE status = 'rate_limited'`).Scan(&rateLimited)
+	if err := s.db.QueryRow(`SELECT COUNT(*) FROM notifications`).Scan(&total); err != nil {
+		return nil, fmt.Errorf("query total: %w", err)
+	}
+	if err := s.db.QueryRow(`SELECT COUNT(*) FROM notifications WHERE status = 'sent'`).Scan(&sent); err != nil {
+		return nil, fmt.Errorf("query sent: %w", err)
+	}
+	if err := s.db.QueryRow(`SELECT COUNT(*) FROM notifications WHERE status = 'failed'`).Scan(&failed); err != nil {
+		return nil, fmt.Errorf("query failed: %w", err)
+	}
+	if err := s.db.QueryRow(`SELECT COUNT(*) FROM notifications WHERE status = 'rate_limited'`).Scan(&rateLimited); err != nil {
+		return nil, fmt.Errorf("query rate_limited: %w", err)
+	}
 
 	return map[string]any{
-		"total":         total,
-		"sent":          sent,
-		"failed":        failed,
-		"rate_limited":  rateLimited,
-		"success_rate":  successRate(total, sent),
+		"total":        total,
+		"sent":         sent,
+		"failed":       failed,
+		"rate_limited": rateLimited,
+		"success_rate": successRate(total, sent),
 	}, nil
 }
 

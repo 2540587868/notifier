@@ -72,11 +72,11 @@ func (r RetryConfig) ParseMaxDelay() time.Duration {
 }
 
 type ChannelConfig struct {
-	Name    string         `yaml:"name"`
-	Type    string         `yaml:"type"`
+	Name    string            `yaml:"name"`
+	Type    string            `yaml:"type"`
 	Config  map[string]string `yaml:"config"`
-	Filter  *RouteFilter   `yaml:"filter"`
-	Enabled bool           `yaml:"enabled"`
+	Filter  *RouteFilter      `yaml:"filter"`
+	Enabled bool              `yaml:"enabled"`
 }
 
 type RouteFilter struct {
@@ -90,9 +90,9 @@ type SilenceConfig struct {
 }
 
 type SilenceWindow struct {
-	Start    string `yaml:"start"`
-	End      string `yaml:"end"`
-	Timezone string `yaml:"timezone"`
+	Start    string   `yaml:"start"`
+	End      string   `yaml:"end"`
+	Timezone string   `yaml:"timezone"`
 	Levels   []string `yaml:"levels"`
 }
 
@@ -163,7 +163,15 @@ func (m *Manager) loadFile(cfg *Config) error {
 }
 
 func (m *Manager) Get() *Config {
-	return m.current.Load().(*Config)
+	cfg := m.current.Load()
+	if cfg == nil {
+		return nil
+	}
+	result, ok := cfg.(*Config)
+	if !ok {
+		return nil
+	}
+	return result
 }
 
 func (m *Manager) Reload() error {
